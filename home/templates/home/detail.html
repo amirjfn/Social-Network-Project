@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+
+
+    <h2 class="text-center"><a href="{% url 'account:user_profile' post.user.id %}">{{ post.user.username }}</a> - {{ post.updated|date:'Y M' }}</h2>
+
+
+    <div class="card">
+        {% if request.user.id == post.user.id %}
+            <a href="{% url 'home:post_delete' post.id %}" class="btn btn-danger" style="position: absolute; right: 0;">Delete</a>
+            <a href="{% url 'home:post_update' post.id %}" class="btn btn-info" style="position: absolute; right: 10;">Update</a>
+        {% endif %}
+        <br><br><br><br><img src="{{post.image.url}}" alt="" class="center" height="550px" width="675px ">
+        <p href="" class="card-body center ">{{ post.body }}</p>
+        <hr>
+    </div>
+    <hr>
+
+    {% if request.user.is_authenticated %}
+        <a href="{% url 'home:post_like' post.id %}" class="{% if can_like %}disabled{% endif %} btn btn-primary col-md-2">{{ post.likes_count }} Like</a>
+        <h4>leave a comment:</h4>
+        <form action="" method="post" >
+            {% csrf_token %}
+            {{ form.as_p }}
+            <input class="btn btn-success" type="submit" value="Send">
+        </form><br>
+    {% else %}
+        <p class="alert alert-danger">فقط کاربرانی که وارد سیستم شده اند میتوانند نظر بدهند</p>
+    {% endif %}
+
+
+    <h3>Comments:</h3>
+    <p>تعداد کامنت:{{ comments.count }}</p>
+    {% for comment in comments %}
+    <div class="card bg-dark text-white">
+        <p class="card-header">{{ comment.user }} | {{ comment.created|timesince }}</p>
+        <p class="card-body">{{ comment.body }}</p>
+
+        {% if request.user.is_authenticated %}
+            <form action="{% url 'home:add_reply' post.id comment.id %}" method="post" >
+                {% csrf_token %}
+                {{ reply_form.as_p }}
+                <input class="btn btn-success" type="submit" value="Send">
+            </form>
+        {% endif %}
+
+        {% with replies=comment.rcomments.all %}
+            {% for reply in replies %}
+                <p class="bg-primary p-3 m-2">{{ reply.user }} <br/> {{ reply.body }}</p>
+            {% endfor %}
+        {% endwith %}
+    </div><br>
+    {% empty %}
+        <p>کامنتی وجود ندارد</p>
+    {% endfor %}
+
+{% endblock %}
